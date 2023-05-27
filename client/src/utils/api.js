@@ -67,7 +67,7 @@ export function Logs(id){
   });
 }
 export function accountDelete(user, pass){
-  return axios.post(`http://192.168.0.15:3001/api/deleteacc`, {
+  return axios.post(`http://192.168.0.15:3001/auth/deleteacc`, {
     user: user,
     pass: pass,
   });

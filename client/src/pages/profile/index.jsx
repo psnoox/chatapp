@@ -71,19 +71,27 @@ export default function ProfilePage() {
   const theme = useTheme();
   const handleClose = () => {setOpenDelete(false)};
   const handleCloseAlert = () => {setOpenAlert(false)};
+  const logout = () => {
+    cookies.remove("TOKEN", { path: "/" });
+    localStorage.removeItem('user');
+    navigate("/login");
+  };
   const handleDelete = (e) => {
     e.preventDefault()
     if (pass.length < 1) return;
     accountDelete(user, pass)
       .then((data) => {
+        console.log(data)
         setAlertData({
           type: "success",
           message:data.data.message,
         });
         setOpenAlert(true);
         handleClose();
+        logout();
       })
       .catch((e) => {
+        console.log(e)
         setAlertData({
           type: "error",
           message: e.response.data.message,
@@ -97,10 +105,6 @@ export default function ProfilePage() {
   };
   const handleDrawerClose = () => {
     setOpen(false);
-  };
-  const logout = () => {
-    cookies.remove("TOKEN", { path: "/" });
-    navigate("/login");
   };
   const [value, setValue] = useState(user.avatarColor)
 
@@ -143,7 +147,7 @@ export default function ProfilePage() {
         <Divider />
         <List>
           <ListItem key={"Home"} disablePadding>
-            <ListItemButton>
+            <ListItemButton onClick={() => navigate('/')}>
               <ListItemIcon>
                 <InboxIcon />
               </ListItemIcon>
@@ -279,9 +283,9 @@ export default function ProfilePage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {logs ? logs.map((log) => (
+                      {logs ? logs.map((log, index) => (
                         <TableRow
-                          key={log.action}
+                        key={index}
                           sx={{
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}

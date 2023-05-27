@@ -130,6 +130,7 @@ export default function MainPage() {
   };
   const logout = () => {
     cookies.remove("TOKEN", { path: "/" });
+    localStorage.removeItem('user');
     navigate("/login");
   };
   if(!chats) return     <>

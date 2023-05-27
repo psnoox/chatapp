@@ -327,10 +327,10 @@ app.post("/password-recovery", async (req, res) => {
   }
 });
 app.post("/deleteacc", (req, res) => {
-  if (req.body) return res.status(400).json({ message: "Bad request" });
+  if (!req.body) return res.status(400).json({ message: "Bad request" });
   const { user, password } = req.body;
   if (!user) return res.status(400).json({ message: "Unauthorized" });
-  const userDB = User.findOneById(user.id)
+  const userDB = User.findById(user.id)
     .then((user) => {
       if (user) {
         bcrypt.compare(password, user.password).then((response) => {
@@ -343,7 +343,7 @@ app.post("/deleteacc", (req, res) => {
         User.findByIdAndDelete(user.id).catch((e) => {
           console.log(e);
         });
-        return res.send(200).json({
+        return res.status(200).json({
           success: true,
           message: "Account deleted successfully",
         });
