@@ -47,6 +47,8 @@ Bibliotego po stronie klienta:
 - socket.io-client (komunikacja klienta z serwerem w czasie rzeczywistym)
 
 
-
-
-Chat application based on ReactJS and NodeJS
+![Okno chat'u](https://i.imgur.com/UfdpOlZ.png)
+![System logów (skrót)](https://i.imgur.com/P8wCHRr.png)
+![Powiadomienie email](https://i.imgur.com/DfDhAOr.png)
+![Powiadomienie email](https://i.imgur.com/0JGXOuw.png)
+![Powiadomienie email](https://i.imgur.com/EPHp4SQ.png)
