@@ -9,6 +9,12 @@ Główne funkcje aplikacji:
     - adresu email
     - nazwy użytkownika
   - usuwanie konta
+- System logów użytkownika w tym:
+  - logowanie
+  - nieudana próba odzyskania konta
+  - nieudana próba usunięcia konta
+  - zmiana hasła
+  - wysłany klucz odzyskiwania 
 - Odzyskiwanie konta za pomocą unikalnego klucza odzyskiwania (kod jest wysylany na adres email przy procesie odzyskiwania)
 - Wysyłanie powiadomien email
 - Tworzenie chat room'ów 
