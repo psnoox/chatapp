@@ -53,7 +53,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const getip = async () => {
     const res = await axios.get("https://api.ipify.org/?format=json");
-    console.log(res.data);
     setIP(res.data.ip);
   };
   useEffect(() => {

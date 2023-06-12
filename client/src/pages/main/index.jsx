@@ -15,20 +15,21 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import GroupIcon from "@mui/icons-material/Group";
 import Avatar from "@mui/material/Avatar";
-import LogoutIcon from '@mui/icons-material/Logout';
+import LogoutIcon from "@mui/icons-material/Logout";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import MuiAlert from "@mui/material/Alert";
-import CreateIcon from '@mui/icons-material/Create';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import CircularProgress from '@mui/material/CircularProgress';
+import CreateIcon from "@mui/icons-material/Create";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../../socket";
 import { ConnectionManager } from "../../components/ConnectionManager";
@@ -38,9 +39,9 @@ import { App } from "../../components/appBar";
 import { Main } from "../../components/main";
 import { DrawerHeader } from "../../components/DrawerHeader";
 import { CreateRoom } from "../../utils/api";
-import {Chats} from "../../utils/api"
-import {JoinRoom} from '../../utils/api'
-import {useParams} from 'react-router-dom';
+import { Chats } from "../../utils/api";
+import { JoinRoom } from "../../utils/api";
+import { useParams } from "react-router-dom";
 import Cookies from "universal-cookie";
 const cookies = new Cookies();
 const drawerWidth = 240;
@@ -48,7 +49,7 @@ const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 export default function MainPage() {
-  const {roomId} = useParams();
+  const { roomId } = useParams();
   const [messages, setMessages] = useState([]);
   const [openAlert, setOpenAlert] = useState(false);
   const [alert, setAlertData] = useState([]);
@@ -58,17 +59,23 @@ export default function MainPage() {
   const [chats, setChats] = useState();
   const [openCreate, setOpenCreate] = useState(false);
   const [open, setOpen] = useState(true);
-  const [openJoin, setOpenJoin] = useState(false)
+  const [openJoin, setOpenJoin] = useState(false);
+  const [openChMem, setOpenChMem] = useState(false);
+  const [chatMems, setChatMems] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
   useEffect(() => {
-    socket.emit('join', {user:user, room:roomId})
-    Chats(user).then((data) => {
-      setChats(data.data)
-    }).catch(e => {
-      console.log(e)
-    })
-    function onNewMessage(value) {setMessages((previous) => [...previous, value]); console.log(messages)}
+    socket.emit("join", { user: user, room: roomId });
+    Chats(user)
+      .then((data) => {
+        setChats(data.data);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+    function onNewMessage(value) {
+      setMessages((previous) => [...previous, value]);
+    }
 
     socket.on("message", onNewMessage);
     return () => {
@@ -76,13 +83,27 @@ export default function MainPage() {
     };
   }, []);
   const theme = useTheme();
-  const handleDrawerOpen = () => {setOpen(true)};
-  const handleDrawerClose = () => {setOpen(false)};
-  const handleClickOpen = () => {setOpenCreate(true)};
-  const handleClose = () => {setOpenCreate(false)};
-  const handleCloseAlert = () => {setOpenAlert(false)};
-  const handleCloseCode = () => {setOpenCode(false)};
-  const handleToggleJoin = () => {setOpenJoin(!openJoin)};
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+  const handleClickOpen = () => {
+    setOpenCreate(true);
+  };
+  const handleClose = () => {
+    setOpenCreate(false);
+  };
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
+  };
+  const handleCloseCode = () => {
+    setOpenCode(false);
+  };
+  const handleToggleJoin = () => {
+    setOpenJoin(!openJoin);
+  };
   const handleCreate = (e) => {
     e.preventDefault();
     if (room.length < 1) return;
@@ -95,7 +116,7 @@ export default function MainPage() {
         });
         setOpenAlert(true);
         handleClose();
-        setOpenCode(true)
+        setOpenCode(true);
       })
       .catch((e) => {
         setAlertData({
@@ -116,8 +137,8 @@ export default function MainPage() {
           message: data.message,
         });
         setOpenAlert(true);
-        handleToggleJoin()
-        setOpenCode(true)
+        handleToggleJoin();
+        setOpenCode(true);
       })
       .catch((e) => {
         setAlertData({
@@ -130,173 +151,243 @@ export default function MainPage() {
   };
   const logout = () => {
     cookies.remove("TOKEN", { path: "/" });
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
     navigate("/login");
   };
-  if(!chats) return     <>
-  <Box sx={{ display: 'flex' }}>
-    <CircularProgress />
-  </Box>
-  </>;
+  if (!chats)
+    return (
+      <>
+        <Box sx={{ display: "flex" }}>
+          <CircularProgress />
+        </Box>
+      </>
+    );
   else
-  return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <App open={open} handleDrawerOpen={handleDrawerOpen} user={user}/>
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
+    return (
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <App open={open} handleDrawerOpen={handleDrawerOpen} user={user} />
+        <Drawer
+          sx={{
             width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "ltr" ? (
-              <ChevronLeftIcon />
-            ) : (
-              <ChevronRightIcon />
-            )}
-          </IconButton>
-        </DrawerHeader>
-        <Divider />
-        <List>
-          <ListItem key={"Home"} disablePadding>
-            <ListItemButton onClick={() => {navigate("/"); window.location.reload()}}>
-              <ListItemIcon>
-                <InboxIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Home"} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem
-            key={"Create room"}
-            disablePadding
-            onClick={handleClickOpen}
-          >
-            <ListItemButton>
-              <ListItemIcon>
-                <CreateIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Create room"} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem key={"Join room"} disablePadding onClick={handleToggleJoin}>
-            <ListItemButton>
-              <ListItemIcon>
-                <AddCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Join room"} />
-            </ListItemButton>
-          </ListItem>
-        </List>
-        <Divider />
-        <List>
-          {chats.length > 0 ? chats.map((chat, index) => (
-            <ListItem key={chat._id} disablePadding>
-              <ListItemButton onClick={() => {
-                navigate(`/room/${chat._id}`);
-                window.location.reload(false)
-              }}>
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              boxSizing: "border-box",
+            },
+          }}
+          variant="persistent"
+          anchor="left"
+          open={open}
+        >
+          <DrawerHeader>
+            <IconButton onClick={handleDrawerClose}>
+              {theme.direction === "ltr" ? (
+                <ChevronLeftIcon />
+              ) : (
+                <ChevronRightIcon />
+              )}
+            </IconButton>
+          </DrawerHeader>
+          <Divider />
+          <List>
+            <ListItem key={"Home"} disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  navigate("/");
+                  window.location.reload();
+                }}
+              >
                 <ListItemIcon>
-                <Avatar>
-                    {chat.name.substring(0,2).toUpperCase()}
-                  </Avatar>
+                  <InboxIcon />
                 </ListItemIcon>
-                <ListItemText primary={chat.name} />
+                <ListItemText primary={"Home"} />
               </ListItemButton>
             </ListItem>
-          )):<><Typography sx={{pl: 2}}>No joined chats yet</Typography></>}
-        </List>
-        <Divider />
-        <List>
-          <ListItem key={"Profile"} disablePadding>
-            <ListItemButton onClick={() => navigate("/profile")}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Profile"} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem key={"Logout"} disablePadding>
-            <ListItemButton onClick={() => logout()}>
-              <ListItemIcon>
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Logout"} />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Drawer>
-      <Main open={open} sx={{ paddingLeft: 0, paddingRight: 0, pb: 0 }}>
-        <DrawerHeader />
-        <Events events={messages} roomId={roomId} user={user} openJoin={openJoin} setOpenJoin={setOpenJoin} openCreate={openCreate} setOpenCreate={setOpenCreate}/>
-        <ConnectionManager />
-        <MyForm roomId={roomId}/>
-      </Main>
-      <Drawer>
-        
-      </Drawer>
-      <div>
-        <Dialog open={openCreate} onClose={handleClose}>
-          <DialogTitle>Create room</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              To create a new room, please enter it's name here. And optionally
-              logo
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              placeholder="Room name"
-              fullWidth
-              type="text"
-              variant="standard"
-              value={room}
-              onChange={(e) => {
-                setRoom(e.target.value);
+            <ListItem
+              key={"Create room"}
+              disablePadding
+              onClick={handleClickOpen}
+            >
+              <ListItemButton>
+                <ListItemIcon>
+                  <CreateIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Create room"} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem
+              key={"Join room"}
+              disablePadding
+              onClick={handleToggleJoin}
+            >
+              <ListItemButton>
+                <ListItemIcon>
+                  <AddCircleIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Join room"} />
+              </ListItemButton>
+            </ListItem>
+          </List>
+          <Divider />
+          <List>
+            {chats.length > 0 ? (
+              chats.map((chat, index) => (
+                <ListItem key={chat._id} disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      navigate(`/room/${chat._id}`);
+                      window.location.reload(false);
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Avatar>{chat.name.substring(0, 2).toUpperCase()}</Avatar>
+                    </ListItemIcon>
+                    <ListItemText primary={chat.name} />
+                  </ListItemButton>
+                </ListItem>
+              ))
+            ) : (
+              <>
+                <Typography sx={{ pl: 2 }}>No joined chats yet</Typography>
+              </>
+            )}
+          </List>
+          <Divider />
+          <List>
+            <ListItem key={"Profile"} disablePadding>
+              <ListItemButton onClick={() => navigate("/profile")}>
+                <ListItemIcon>
+                  <AccountCircleIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Profile"} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem key={"Logout"} disablePadding>
+              <ListItemButton onClick={() => logout()}>
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Logout"} />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </Drawer>
+        <Main open={open} sx={{ paddingLeft: 0, paddingRight: 0, pb: 0 }}>
+          <DrawerHeader />
+          <Events
+            events={messages}
+            roomId={roomId}
+            user={user}
+            openJoin={openJoin}
+            setOpenJoin={setOpenJoin}
+            openCreate={openCreate}
+            setOpenCreate={setOpenCreate}
+            chatMems={chatMems}
+            setChatMems={setChatMems}
+            openChMem={openChMem}
+            setOpenChMem={setOpenChMem}
+          />
+          <ConnectionManager />
+          <MyForm roomId={roomId} />
+        </Main>
+        {openChMem === true ? (
+          <>
+            <Drawer
+              sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                "& .MuiDrawer-paper": {
+                  width: drawerWidth,
+                  boxSizing: "border-box",
+                },
               }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={handleCreate}>Create</Button>
-          </DialogActions>
-        </Dialog>
+              variant="persistent"
+              anchor="right"
+              open={true}
+            >
+              <DrawerHeader sx={{ justifyContent: "center" }}>
+                <GroupIcon />
+                <Typography>Chat members</Typography>
+              </DrawerHeader>
+              <Divider />
+              <List>
+                {chatMems.length > 0 ? (
+                  chatMems.map((mem, index) => (
+                    <ListItem key={mem._id} disablePadding>
+                      <ListItemButton>
+                        <ListItemIcon>
+                          <Avatar sx={{bgcolor: mem.avatarColor}}>
+                            {mem.username.substring(0, 2).toUpperCase()}
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText primary={mem.username} />
+                      </ListItemButton>
+                    </ListItem>
+                  ))
+                ) : (
+                  <>
+                    <Typography sx={{ pl: 2 }}>No members joined</Typography>
+                  </>
+                )}
+              </List>
+            </Drawer>
+          </>
+        ) : null}
+        <div>
+          <Dialog open={openCreate} onClose={handleClose}>
+            <DialogTitle>Create room</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                To create a new room, please enter it's name here. And
+                optionally logo
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                placeholder="Room name"
+                fullWidth
+                type="text"
+                variant="standard"
+                value={room}
+                onChange={(e) => {
+                  setRoom(e.target.value);
+                }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={handleCreate}>Create</Button>
+            </DialogActions>
+          </Dialog>
         </div>
         <div>
-        <Dialog open={openJoin} onClose={handleToggleJoin}>
-          <DialogTitle>Join to room</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              To join to room, please enter it's access code here.
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              placeholder="Access code"
-              fullWidth
-              type="text"
-              variant="standard"
-              value={room}
-              onChange={(e) => {
-                setRoom(e.target.value);
-              }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleToggleJoin}>Cancel</Button>
-            <Button onClick={handleJoin}>Join</Button>
-          </DialogActions>
-        </Dialog>
+          <Dialog open={openJoin} onClose={handleToggleJoin}>
+            <DialogTitle>Join to room</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                To join to room, please enter it's access code here.
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                placeholder="Access code"
+                fullWidth
+                type="text"
+                variant="standard"
+                value={room}
+                onChange={(e) => {
+                  setRoom(e.target.value);
+                }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleToggleJoin}>Cancel</Button>
+              <Button onClick={handleJoin}>Join</Button>
+            </DialogActions>
+          </Dialog>
         </div>
         <div>
           <Dialog
@@ -306,14 +397,10 @@ export default function MainPage() {
             onClose={handleCloseCode}
             aria-describedby="alert-dialog-slide-description"
           >
-            <DialogTitle>{"Access code to room: "+room}</DialogTitle>
+            <DialogTitle>{"Access code to room: " + room}</DialogTitle>
             <DialogContent>
               <DialogContentText id="alert-dialog-slide-description">
                 {code}
-              </DialogContentText>
-              <Divider />
-              <DialogContentText id="alert-dialog-slide-description">
-                https://chat.saganowski.ovh/room/{code}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -334,6 +421,6 @@ export default function MainPage() {
             {alert.message}
           </Alert>
         </Snackbar>
-    </Box>
-  );
+      </Box>
+    );
 }

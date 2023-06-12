@@ -51,7 +51,6 @@ export default function RegisterPage() {
   const [keySent, setKeySent] = useState(false);
   const getip = async () => {
     const res = await axios.get("https://api.ipify.org/?format=json");
-    console.log(res.data);
     setIP(res.data.ip);
   };
   useEffect(() => {

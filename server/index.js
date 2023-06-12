@@ -58,7 +58,12 @@ io.on("connection", (socket) => {
     if(room.length !== 24) return socket.emit('chat-empty', {messages: "Chat doesn't exists"});
     const messages = await Message.find({roomId: room})
     if(!messages) return socket.emit('chat-empty', {messages: "Chat is empty"})
-    socket.emit("chat-history-res", messages)
+    socket.emit("chat-history-res", messages);
+  })
+  socket.on("chat-members", async (room) => {
+    if(room.length !== 24) return socket.emit('chat-empty', {messages: "Chat doesn't exists"});
+    const users = await User.find({joinedChats: {$in: [new mongo.Types.ObjectId(room)]}});
+    socket.emit("chat-members-res", users);
   })
   socket.on("new-message", async (data) => {
     let newMess = new Message({

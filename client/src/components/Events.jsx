@@ -18,7 +18,7 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export function Events({ events, roomId, openJoin, setOpenJoin, openCreate, setOpenCreate }) {
+export function Events({ events, roomId, openJoin, setOpenJoin, openCreate, setOpenCreate, chatMems, setChatMems, openChMem, setOpenChMem }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState();
   const listRef = useRef(null);
@@ -26,6 +26,11 @@ export function Events({ events, roomId, openJoin, setOpenJoin, openCreate, setO
     if (roomId === undefined) return;
     else {
       socket.emit("chat-history", roomId);
+      socket.emit("chat-members", roomId);
+      socket.on('chat-members-res', (members) => {
+        setChatMems(members);
+        setOpenChMem(true)
+      })
       socket.on("chat-empty", (msg) => {});
       socket.on("chat-history-res", (messages) => {
         setMessages(messages);

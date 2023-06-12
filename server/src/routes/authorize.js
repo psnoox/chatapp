@@ -135,7 +135,6 @@ app.post("/login", async (req, res) => {
               process.env.SECRET,
               { expiresIn: "24h" }
             );
-            console.log(token);
             res.status(200).send({
               success: true,
               message: "Logged in successfully",
@@ -507,7 +506,6 @@ app.post("/changepassword", async (req, res) => {
 app.post("/changecolor", async (req, res) => {
   if (!req.body) return res.status(400).send({ message: "Bad request" });
   const { authToken, color, user } = req.body;
-  console.log({ authToken, color, user });
   if (!authToken || !color || !user)
     return res.status(400).send({ message: "Bad request" });
   const verifyToken = jwt.verify(

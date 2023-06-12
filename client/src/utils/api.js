@@ -90,7 +90,6 @@ export function changePassword(user, oldPassword, newPassword, ip, browser){
 }
 export function changeColor(color, user, ip, browser){
   const token = localStorage.getItem("authToken");
-  console.log(token)
   return axios.post(`http://192.168.0.15:3001/auth/changecolor`, {
     authToken: token,
     color: color,

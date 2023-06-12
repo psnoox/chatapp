@@ -77,7 +77,6 @@ export default function RegisterPage() {
     },
     validate,
     onSubmit: (values) => {
-      //console.log(values);
       const { username, email, password, gender } = values;
       const dateofbirth = moment(values.dateofbirth).format("DD/MM/YYYY");
       Register(username, email, password, dateofbirth, gender)

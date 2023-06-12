@@ -95,7 +95,6 @@ export default function ProfilePage() {
     if (pass.length < 1) return;
     accountDelete(user, pass, ip, window.navigator.userAgent)
       .then((data) => {
-        console.log(data);
         setAlertData({
           type: "success",
           message: data.data.message,
@@ -154,11 +153,8 @@ export default function ProfilePage() {
     setValue(newValue);
   };
   const handleChangeColor = async () => {
-    console.log(value)
     if(!value) return;
     await changeColor(value, user, ip, window.navigator.userAgent).then(res => {
-      console.log(res)
-      console.log()
       setAlertData({
         type: "success",
         message: res.data.message,
@@ -198,14 +194,11 @@ export default function ProfilePage() {
   }
   const getip = async () => {
     const res = await axios.get("https://api.ipify.org/?format=json");
-    console.log(res.data);
     setIP(res.data.ip);
   };
   useEffect(() => {
     getip();
-    console.log(user);
     Logs(user.id).then(({ data }) => {
-      console.log(data);
       setLogs(data);
     });
   }, []);
