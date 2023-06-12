@@ -42,7 +42,7 @@ import { MuiColorInput } from "mui-color-input";
 import { Main } from "../../components/main";
 import Stack from "@mui/material/Stack";
 import { DrawerHeader } from "../../components/DrawerHeader";
-import { Logs, accountDelete, changePassword, changeColor } from "../../utils/api";
+import { Logs, accountDelete, changePassword, changeColor, changeInfo } from "../../utils/api";
 import Cookies from "universal-cookie";
 const cookies = new Cookies();
 const drawerWidth = 240;
@@ -76,6 +76,8 @@ export default function ProfilePage() {
   const [alert, setAlertData] = useState([]);
   const [ip, setIP] = useState("");
   const user = JSON.parse(localStorage.getItem("user"));
+  const [email, setEmail] = useState(user.email);
+  const [username, setUsername] = useState(user.username)
   const navigate = useNavigate();
   const theme = useTheme();
   const handleClose = () => {
@@ -172,6 +174,27 @@ export default function ProfilePage() {
       });
       setOpenAlert(true);
     }) 
+  }
+  const handleChangeInfo = async () => {
+    if(!email || !username) return;
+    
+    if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
+      return window.alert("Invalid email address");
+    }
+    if(username.length > 20) return window.alert("Invalid username")
+    await changeInfo(user, email, username).then(res => {
+      setAlertData({
+        type: "success",
+        message: res.data.message,
+      });
+      setOpenAlert(true);
+    }).catch(e => {
+      setAlertData({
+        type: "error",
+        message: e.response.data.message,
+      });
+      setOpenAlert(true);
+    })
   }
   const getip = async () => {
     const res = await axios.get("https://api.ipify.org/?format=json");
@@ -273,13 +296,21 @@ export default function ProfilePage() {
                     id="standard-basic"
                     label={user.email}
                     variant="standard"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
                   />
                   <TextField
                     id="standard-basic"
                     label={user.username}
                     variant="standard"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                    }}
                   />
-                  <Button variant="contained">Save</Button>
+                  <Button variant="contained" onClick={() => handleChangeInfo()}>Save</Button>
                 </Stack>
               </Item>
             </Grid>

@@ -135,6 +135,7 @@ app.post("/login", async (req, res) => {
               process.env.SECRET,
               { expiresIn: "24h" }
             );
+            console.log(token);
             res.status(200).send({
               success: true,
               message: "Logged in successfully",
@@ -151,17 +152,6 @@ app.post("/login", async (req, res) => {
                 createdAt: user.createdAt,
                 role: user.role,
               },
-            });
-
-            console.log(ipinfo);
-            console.log({
-              userId: user._id,
-              type: "WARNING",
-              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
-              ipAddr: ip,
-              localization: ipinfo.addressLocality,
-              browser: browser,
-              action: "USER_LOGIN",
             });
             Logs.create({
               userId: user._id,
@@ -320,60 +310,68 @@ app.post("/password-recovery", async (req, res) => {
 });
 app.post("/deleteacc", async (req, res) => {
   if (!req.body) return res.status(400).json({ message: "Bad request" });
-  const { user, pass, ip, browser } = req.body;
-  if (!user || !pass || !ip || !browser)
-    return res.status(400).json({ message: "Unauthorized" });
+  const { authToken, user, pass, ip, browser } = req.body;
+  if (!authToken || !user || !pass || !ip || !browser)
+    return res.status(400).json({ message: "Bad request" });
   const ipinfo = await getIpInfo(ip);
-  const userDB = User.findById(user.id)
-    .then((user) => {
-      if (user) {
-        bcrypt.compare(pass, user.password).then((response) => {
-          if (!response) {
-            Logs.create({
-              userId: user._id,
-              type: "CRITICAL",
-              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
-              ipAddr: ipinfo.ipAddress,
-              localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
-              browser: browser,
-              action: "ATTEMPT_DELETION",
-            });
-            mailer(
-              user.email,
-              `[${user.email}] CRITICAL WARNING`,
-              `Attemption of account deletion`,
-              `We have registered a failed account deletion attempt. If it wasn't you, please change your password immediately. <br><br><i>chatapp.saganowski.ovh</i>`
-            );
-            return res.status(401).json({
-              success: false,
-              message: "Deletion proccess failed. Incorrect password",
+  const verifyToken = jwt.verify(
+    authToken,
+    process.env.SECRET,
+    function (err, response) {
+      if (err) return res.status(401).json({ message: "Unauthorized" });
+      const userDB = User.findById(user.id)
+        .then((user) => {
+          if (user) {
+            bcrypt.compare(pass, user.password).then((response) => {
+              if (!response) {
+                Logs.create({
+                  userId: user._id,
+                  type: "CRITICAL",
+                  date:
+                    moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
+                  ipAddr: ipinfo.ipAddress,
+                  localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
+                  browser: browser,
+                  action: "ATTEMPT_DELETION",
+                });
+                mailer(
+                  user.email,
+                  `[${user.email}] CRITICAL WARNING`,
+                  `Attemption of account deletion`,
+                  `We have registered a failed account deletion attempt. If it wasn't you, please change your password immediately. <br><br><i>chatapp.saganowski.ovh</i>`
+                );
+                return res.status(401).json({
+                  success: false,
+                  message: "Deletion proccess failed. Incorrect password",
+                });
+              } else {
+                User.findByIdAndDelete(user.id).catch((e) => {
+                  console.log(e);
+                });
+                mailer(
+                  user.email,
+                  `[${user.email}] Account deletion`,
+                  `Account deletion`,
+                  `Your account has been deleted successfully<br><br><i>chatapp.saganowski.ovh</i>`
+                );
+                return res.status(200).json({
+                  success: true,
+                  message: "Account deleted successfully",
+                });
+              }
             });
           } else {
-            User.findByIdAndDelete(user.id).catch((e) => {
-              console.log(e);
-            });
-            mailer(
-              user.email,
-              `[${user.email}] Account deletion`,
-              `Account deletion`,
-              `Your account has been deleted successfully<br><br><i>chatapp.saganowski.ovh</i>`
-            );
-            return res.status(200).json({
-              success: true,
-              message: "Account deleted successfully",
+            return res.send(400).json({
+              success: false,
+              message: "Account does not exists",
             });
           }
+        })
+        .catch((e) => {
+          console.log(e);
         });
-      } else {
-        return res.send(400).json({
-          success: false,
-          message: "Account does not exists",
-        });
-      }
-    })
-    .catch((e) => {
-      console.log(e);
-    });
+    }
+  );
 });
 app.post("/password-recovery", async (req, res) => {
   if (!req.body) return res.status(400).send({ message: "Bad request" });
@@ -442,8 +440,8 @@ app.post("/password-recovery", async (req, res) => {
 });
 app.post("/changepassword", async (req, res) => {
   if (!req.body) return res.status(400).send({ message: "Bad request" });
-  const { user, oldPassword, newPassword, ip, browser } = req.body;
-  if (!user || !oldPassword)
+  const { authToken, user, oldPassword, newPassword, ip, browser } = req.body;
+  if (!authToken || !user || !oldPassword)
     return res.status(401).json({ message: "Bad request" });
   if (!newPassword)
     return res.status(401).json({ message: "Password not provided" });
@@ -453,39 +451,54 @@ app.post("/changepassword", async (req, res) => {
     });
   const ipinfo = await getIpInfo(ip);
   try {
-    const userDB = User.findById(user.id).then((user) => {
-      if (user) {
-        bcrypt.compare(oldPassword, user.password).then(async (response) => {
-          if (!response) {
-            Logs.create({
-              userId: user._id,
-              type: "CRITICAL",
-              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
-              ipAddr: ipinfo.ipAddress,
-              localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
-              browser: browser,
-              action: "ATTEMPT_PASSWORD_CHANGE",
-            });
-            return res.status(401).json({
-              success: false,
-              message: "Password changing proccess failed. Incorrect password",
-            });
-          } else {
-            const passHashed = await bcrypt.hash(
-              newPassword,
-              Number(process.env.bcrypt_salt)
-            );
-            User.findByIdAndUpdate(user.id, {password: passHashed}).catch((e) => {
-              console.log(e);
-            });
-            return res.status(200).json({
-              success: true,
-              message: "Password changed successfully",
-            });
+    const verifyToken = jwt.verify(
+      authToken,
+      process.env.SECRET,
+      function (err, response) {
+        if (err) return res.status(401).json({ message: "Unauthorized" });
+        const userDB = User.findById(user.id).then((user) => {
+          if (user) {
+            bcrypt
+              .compare(oldPassword, user.password)
+              .then(async (response) => {
+                if (!response) {
+                  Logs.create({
+                    userId: user._id,
+                    type: "CRITICAL",
+                    date:
+                      moment().format("DD/MM/YYYY") +
+                      " " +
+                      moment().format("LT"),
+                    ipAddr: ipinfo.ipAddress,
+                    localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
+                    browser: browser,
+                    action: "ATTEMPT_PASSWORD_CHANGE",
+                  });
+                  return res.status(401).json({
+                    success: false,
+                    message:
+                      "Password changing proccess failed. Incorrect password",
+                  });
+                } else {
+                  const passHashed = await bcrypt.hash(
+                    newPassword,
+                    Number(process.env.bcrypt_salt)
+                  );
+                  User.findByIdAndUpdate(user.id, {
+                    password: passHashed,
+                  }).catch((e) => {
+                    console.log(e);
+                  });
+                  return res.status(200).json({
+                    success: true,
+                    message: "Password changed successfully",
+                  });
+                }
+              });
           }
         });
       }
-    });
+    );
   } catch (error) {
     console.log(error);
     return res.status(500);
@@ -493,16 +506,51 @@ app.post("/changepassword", async (req, res) => {
 });
 app.post("/changecolor", async (req, res) => {
   if (!req.body) return res.status(400).send({ message: "Bad request" });
-  const { color, user } = req.body;
-  if(!color || !user) return res.status(400).send({ message: "Bad request" });
-  User.findByIdAndUpdate(user.id, {avatarColor: color}).then(() => {
-    return res.status(200).json({
-      success: true,
-      message: "Avatar color changed successfully",
-    });
-  }).catch (e => {
-    console.log(e);
-    return res.sendStatus(500);
-  })
-})
+  const { authToken, color, user } = req.body;
+  console.log({ authToken, color, user });
+  if (!authToken || !color || !user)
+    return res.status(400).send({ message: "Bad request" });
+  const verifyToken = jwt.verify(
+    authToken,
+    process.env.SECRET,
+    function (err, response) {
+      if (err) return res.status(401).json({ message: "Unauthorized" });
+      User.findByIdAndUpdate(user.id, { avatarColor: color })
+        .then(() => {
+          return res.status(200).json({
+            success: true,
+            message: "Avatar color changed successfully",
+          });
+        })
+        .catch((e) => {
+          console.log(e);
+          return res.sendStatus(500);
+        });
+    }
+  );
+});
+app.post("/changeinfo", async (req, res) => {
+  if (!req.body) return res.status(400).send({ message: "Bad request" });
+  const { authToken, user, email, username } = req.body;
+  if (!authToken || !user || !email || !username)
+    return res.status(400).send({ message: "Bad request" });
+  const verifyToken = jwt.verify(
+    authToken,
+    process.env.SECRET,
+    function (err, response) {
+      if (err) return res.status(401).json({ message: "Unauthorized" });
+      User.findByIdAndUpdate(user.id, { email: email, username: username })
+        .then(() => {
+          return res.status(200).json({
+            success: true,
+            message: "User data changed",
+          });
+        })
+        .catch((e) => {
+          console.log(e);
+          return res.status(500);
+        });
+    }
+  );
+});
 export default app;

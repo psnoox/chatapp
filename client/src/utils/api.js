@@ -36,17 +36,18 @@ export function RecoveryPass(email, key, pass, passconf, ip, browser) {
     browser: browser
   });
 }
-export async function Messages() {
-  return axios.get(`http://192.168.0.15:3001/api/global`);
-}
 export function CreateRoom(user, name){
+  const token = localStorage.getItem("authToken");
   return axios.post(`http://192.168.0.15:3001/api/create-room`, {
+    authToken: token,
     user: user,
     name: name
   });
 }
 export function JoinRoom(user, code){
+  const token = localStorage.getItem("authToken");
   return axios.post(`http://192.168.0.15:3001/api/join-room`, {
+    authToken: token,
     user: user,
     code: code
   });
@@ -67,7 +68,9 @@ export function Logs(id){
   });
 }
 export function accountDelete(user, pass, ip, browser){
+  const token = localStorage.getItem("authToken");
   return axios.post(`http://192.168.0.15:3001/auth/deleteacc`, {
+    authToken: token,
     user: user,
     pass: pass,
     ip: ip,
@@ -75,7 +78,9 @@ export function accountDelete(user, pass, ip, browser){
   });
 }
 export function changePassword(user, oldPassword, newPassword, ip, browser){
+  const token = localStorage.getItem("authToken");
   return axios.post(`http://192.168.0.15:3001/auth/changepassword`, {
+    authToken: token,
     user: user,
     oldPassword: oldPassword,
     newPassword: newPassword,
@@ -84,10 +89,22 @@ export function changePassword(user, oldPassword, newPassword, ip, browser){
   })
 }
 export function changeColor(color, user, ip, browser){
+  const token = localStorage.getItem("authToken");
+  console.log(token)
   return axios.post(`http://192.168.0.15:3001/auth/changecolor`, {
+    authToken: token,
     color: color,
     user: user,
     ip: ip,
     browser: browser
+  })
+}
+export function changeInfo(user, email, username){
+  const token = localStorage.getItem("authToken");
+  return axios.post(`http://192.168.0.15:3001/auth/changeinfo`, {
+    authToken: token,
+    email: email,
+    username: username,
+    user: user
   })
 }

@@ -70,6 +70,7 @@ export default function LoginPage() {
           });
           setOpen(true);
           localStorage.setItem("user", JSON.stringify(data.user));
+          localStorage.setItem('authToken', data.token)
           cookies.set("TOKEN", data.token, { path: "/" });
           navigate("/");
         })
