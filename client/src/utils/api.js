@@ -66,9 +66,28 @@ export function Logs(id){
     id: id,
   });
 }
-export function accountDelete(user, pass){
+export function accountDelete(user, pass, ip, browser){
   return axios.post(`http://192.168.0.15:3001/auth/deleteacc`, {
     user: user,
     pass: pass,
+    ip: ip,
+    browser: browser
   });
+}
+export function changePassword(user, oldPassword, newPassword, ip, browser){
+  return axios.post(`http://192.168.0.15:3001/auth/changepassword`, {
+    user: user,
+    oldPassword: oldPassword,
+    newPassword: newPassword,
+    ip: ip,
+    browser: browser
+  })
+}
+export function changeColor(color, user, ip, browser){
+  return axios.post(`http://192.168.0.15:3001/auth/changecolor`, {
+    color: color,
+    user: user,
+    ip: ip,
+    browser: browser
+  })
 }

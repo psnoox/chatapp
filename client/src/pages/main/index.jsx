@@ -68,7 +68,7 @@ export default function MainPage() {
     }).catch(e => {
       console.log(e)
     })
-    function onNewMessage(value) {setMessages((previous) => [...previous, value])}
+    function onNewMessage(value) {setMessages((previous) => [...previous, value]); console.log(messages)}
 
     socket.on("message", onNewMessage);
     return () => {
@@ -168,7 +168,7 @@ export default function MainPage() {
         <Divider />
         <List>
           <ListItem key={"Home"} disablePadding>
-            <ListItemButton>
+            <ListItemButton onClick={() => {navigate("/"); window.location.reload()}}>
               <ListItemIcon>
                 <InboxIcon />
               </ListItemIcon>
@@ -234,12 +234,15 @@ export default function MainPage() {
           </ListItem>
         </List>
       </Drawer>
-      <Main open={open} sx={{ paddingLeft: 1, paddingRight: 0, pb: 0 }}>
+      <Main open={open} sx={{ paddingLeft: 0, paddingRight: 0, pb: 0 }}>
         <DrawerHeader />
-        <Events events={messages} roomId={roomId} user={user}/>
+        <Events events={messages} roomId={roomId} user={user} openJoin={openJoin} setOpenJoin={setOpenJoin} openCreate={openCreate} setOpenCreate={setOpenCreate}/>
         <ConnectionManager />
         <MyForm roomId={roomId}/>
       </Main>
+      <Drawer>
+        
+      </Drawer>
       <div>
         <Dialog open={openCreate} onClose={handleClose}>
           <DialogTitle>Create room</DialogTitle>

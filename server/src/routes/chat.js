@@ -43,7 +43,15 @@ app.post('/create-room', async (req, res) => {
     const updateUser = await User.findByIdAndUpdate(user.id, {$push: {joinedChats: newChat._id}}).catch(e => {console.log(e)});
     res.send(newChat.code)
 })
-
+app.post('/room/users', async(req, res) => {
+    if (!req.body) return res.status(400).send({ message: "Unauthorized" });
+    const {user} = req.body;
+    if (!user) return res.status(400).send({ message: "Unauthorized" });
+    const userJoinedRooms = await User.findById(user.id).catch(e => {console.log(e)});
+    const chats = await Chat.find({_id: {$in: userJoinedRooms.joinedChats}}).catch(e => {console.log(e)});
+    if(!chats) return res.status(400).send({ message: "You don't have chats yet!" });
+    res.send(chats)
+})
 app.get("/global", async (req, res) => {
     const messages = await Message.find({});
     res.send(JSON.stringify(messages))

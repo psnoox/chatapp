@@ -12,7 +12,7 @@ import jwt from "jsonwebtoken";
 import moment from "moment";
 import uniqueString from "unique-string";
 import Logs from "../schema/login-logs.js";
-import { SuperfaceClient } from "@superfaceai/one-sdk";
+import { SuperfaceClient, urlSearchParamsBody } from "@superfaceai/one-sdk";
 const sdk = new SuperfaceClient();
 async function getIpInfo(ip) {
   const profile = await sdk.getProfile("address/ip-geolocation@1.0.1");
@@ -57,7 +57,7 @@ app.post("/register", async (req, res) => {
         password,
         Number(process.env.bcrypt_salt)
       );
-      const date = moment().subtract(10, "days").calendar();
+      const date = moment().format("DD/MM/YYYY");
       const us = "User";
       const colors = [
         "red",
@@ -157,10 +157,7 @@ app.post("/login", async (req, res) => {
             console.log({
               userId: user._id,
               type: "WARNING",
-              date:
-                moment().subtract(10, "days").calendar() +
-                " " +
-                moment().format("LT"),
+              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
               ipAddr: ip,
               localization: ipinfo.addressLocality,
               browser: browser,
@@ -169,10 +166,7 @@ app.post("/login", async (req, res) => {
             Logs.create({
               userId: user._id,
               type: "WARNING",
-              date:
-                moment().subtract(10, "days").calendar() +
-                " " +
-                moment().format("LT"),
+              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
               ipAddr: ipinfo.ipAddress,
               localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
               browser: browser,
@@ -227,7 +221,7 @@ app.post("/recovery-key", async (req, res) => {
                       userId: id,
                       type: "WARNING",
                       date:
-                        moment().subtract(10, "days").calendar() +
+                        moment().format("DD/MM/YYYY") +
                         " " +
                         moment().format("LT"),
                       ipAddr: ipinfo.ipAddress,
@@ -298,9 +292,7 @@ app.post("/password-recovery", async (req, res) => {
                   userId: result._id,
                   type: "INFO",
                   date:
-                    moment().subtract(10, "days").calendar() +
-                    " " +
-                    moment().format("LT"),
+                    moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
                   ipAddr: ipinfo.ipAddress,
                   localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
                   browser: browser,
@@ -326,26 +318,51 @@ app.post("/password-recovery", async (req, res) => {
     return res.status(500);
   }
 });
-app.post("/deleteacc", (req, res) => {
+app.post("/deleteacc", async (req, res) => {
   if (!req.body) return res.status(400).json({ message: "Bad request" });
-  const { user, password } = req.body;
-  if (!user) return res.status(400).json({ message: "Unauthorized" });
+  const { user, pass, ip, browser } = req.body;
+  if (!user || !pass || !ip || !browser)
+    return res.status(400).json({ message: "Unauthorized" });
+  const ipinfo = await getIpInfo(ip);
   const userDB = User.findById(user.id)
     .then((user) => {
       if (user) {
-        bcrypt.compare(password, user.password).then((response) => {
-          if (!response)
+        bcrypt.compare(pass, user.password).then((response) => {
+          if (!response) {
+            Logs.create({
+              userId: user._id,
+              type: "CRITICAL",
+              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
+              ipAddr: ipinfo.ipAddress,
+              localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
+              browser: browser,
+              action: "ATTEMPT_DELETION",
+            });
+            mailer(
+              user.email,
+              `[${user.email}] CRITICAL WARNING`,
+              `Attemption of account deletion`,
+              `We have registered a failed account deletion attempt. If it wasn't you, please change your password immediately. <br><br><i>chatapp.saganowski.ovh</i>`
+            );
             return res.status(401).json({
               success: false,
-              message: "Log in failed. Incorrect username or password",
+              message: "Deletion proccess failed. Incorrect password",
             });
-        });
-        User.findByIdAndDelete(user.id).catch((e) => {
-          console.log(e);
-        });
-        return res.status(200).json({
-          success: true,
-          message: "Account deleted successfully",
+          } else {
+            User.findByIdAndDelete(user.id).catch((e) => {
+              console.log(e);
+            });
+            mailer(
+              user.email,
+              `[${user.email}] Account deletion`,
+              `Account deletion`,
+              `Your account has been deleted successfully<br><br><i>chatapp.saganowski.ovh</i>`
+            );
+            return res.status(200).json({
+              success: true,
+              message: "Account deleted successfully",
+            });
+          }
         });
       } else {
         return res.send(400).json({
@@ -358,4 +375,134 @@ app.post("/deleteacc", (req, res) => {
       console.log(e);
     });
 });
+app.post("/password-recovery", async (req, res) => {
+  if (!req.body) return res.status(400).send({ message: "Bad request" });
+  const { email, recoveryKey, newPassword, newPasswordConf, ip, browser } =
+    req.body;
+  if (!recoveryKey)
+    return res.status(401).json({ message: "Recovery key not provided" });
+  if (!newPassword)
+    return res.status(401).json({ message: "Password not provided" });
+  if (newPassword.length < 8)
+    return res.status(400).send({
+      message: "The password cannot be less than 8 characters",
+    });
+  if (newPassword !== newPasswordConf) {
+    return res.status(400).send({
+      message: "Passwords are not identical.",
+    });
+  }
+  const ipinfo = await getIpInfo(ip);
+  try {
+    await Recovery.findOne({ email: email })
+      .select(["email", "recoveryKey"])
+      .lean()
+      .then(async (result) => {
+        if (result) {
+          let compareKeys = result.recoveryKey === recoveryKey;
+          if (compareKeys) {
+            let hashedPass = await bcrypt.hash(
+              newPassword,
+              Number(process.env.bcrypt_salt)
+            );
+            try {
+              await User.findOneAndUpdate(
+                { email: email },
+                { password: hashedPass }
+              ).then((result) => {
+                Logs.create({
+                  userId: result._id,
+                  type: "INFO",
+                  date:
+                    moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
+                  ipAddr: ipinfo.ipAddress,
+                  localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
+                  browser: browser,
+                  action: "PASSWORD_RECOVERED",
+                });
+              });
+              await Recovery.findOneAndDelete({ email: email });
+              return res.status(200).json({
+                success: true,
+                message: "Password changed successfully",
+              });
+            } catch (error) {
+              console.log(error);
+              return res.status(500);
+            }
+          } else {
+            res.status(400).json({ message: "Invalid recovery key" });
+          }
+        }
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(500);
+  }
+});
+app.post("/changepassword", async (req, res) => {
+  if (!req.body) return res.status(400).send({ message: "Bad request" });
+  const { user, oldPassword, newPassword, ip, browser } = req.body;
+  if (!user || !oldPassword)
+    return res.status(401).json({ message: "Bad request" });
+  if (!newPassword)
+    return res.status(401).json({ message: "Password not provided" });
+  if (newPassword.length < 8)
+    return res.status(400).send({
+      message: "The password cannot be less than 8 characters",
+    });
+  const ipinfo = await getIpInfo(ip);
+  try {
+    const userDB = User.findById(user.id).then((user) => {
+      if (user) {
+        bcrypt.compare(oldPassword, user.password).then(async (response) => {
+          if (!response) {
+            Logs.create({
+              userId: user._id,
+              type: "CRITICAL",
+              date: moment().format("DD/MM/YYYY") + " " + moment().format("LT"),
+              ipAddr: ipinfo.ipAddress,
+              localization: `${ipinfo.addressLocality} - ${ipinfo.addressRegion} (${ipinfo.addressCountry})`,
+              browser: browser,
+              action: "ATTEMPT_PASSWORD_CHANGE",
+            });
+            return res.status(401).json({
+              success: false,
+              message: "Password changing proccess failed. Incorrect password",
+            });
+          } else {
+            const passHashed = await bcrypt.hash(
+              newPassword,
+              Number(process.env.bcrypt_salt)
+            );
+            User.findByIdAndUpdate(user.id, {password: passHashed}).catch((e) => {
+              console.log(e);
+            });
+            return res.status(200).json({
+              success: true,
+              message: "Password changed successfully",
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500);
+  }
+});
+app.post("/changecolor", async (req, res) => {
+  if (!req.body) return res.status(400).send({ message: "Bad request" });
+  const { color, user } = req.body;
+  if(!color || !user) return res.status(400).send({ message: "Bad request" });
+  User.findByIdAndUpdate(user.id, {avatarColor: color}).then(() => {
+    return res.status(200).json({
+      success: true,
+      message: "Avatar color changed successfully",
+    });
+  }).catch (e => {
+    console.log(e);
+    return res.sendStatus(500);
+  })
+})
 export default app;

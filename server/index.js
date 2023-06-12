@@ -65,7 +65,8 @@ io.on("connection", (socket) => {
       roomId: data.room,
       author: {
         id: data.user.id,
-        name: data.user.username
+        name: data.user.username,
+        avatar: data.user.avatarColor
       },
       message: data.message,
       date: moment().format('LLL'),

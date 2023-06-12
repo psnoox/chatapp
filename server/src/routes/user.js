@@ -19,4 +19,5 @@ app.post('/logs', async (req, res) => {
     if(!logs) return res.status(400).send({ message: "No logs" });
     res.send(logs)
 })
+
 export default app;

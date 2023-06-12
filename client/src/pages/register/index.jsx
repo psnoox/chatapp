@@ -43,17 +43,7 @@ const validate = (values) => {
   } else if (values.password.length < 8) {
     errors.password = "Password is too weak";
   }
-  if (!values.confirm) {
-    errors.confirm = "*";
-  } else if (values.confirm !== values.password) {
-    errors.confirm = "Passwords are not identical";
-  }
-  if (!values.dateofbirth) {
-    errors.dateofbirth = "*";
-  }
-  if (!values.gender) {
-    errors.gender = "*";
-  }
+
   return errors;
 };
 const Alert = forwardRef(function Alert(props, ref) {

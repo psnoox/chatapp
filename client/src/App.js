@@ -5,6 +5,7 @@ import LoginPage from "./pages/login";
 import ProfilePage from "./pages/profile";
 import RegisterPage from "./pages/register";
 import RecoveryPage from "./pages/recovery";
+import NotFound from './pages/notfound'
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -28,6 +29,7 @@ function App() {
             <Route path="/login" exact element={<LoginPage />}></Route>
             <Route path="/signup" exact element={<RegisterPage />}></Route>
             <Route path="/recovery" exact element={<RecoveryPage />}></Route>
+            <Route path="*" exact element={<NotFound/>}></Route>
           </Routes>
       </LocalizationProvider>
     </ThemeProvider>
