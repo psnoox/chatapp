@@ -1,5 +1,20 @@
 # chat-app
 
+Główne funkcje aplikacji:
+- Tworzenie kont uzytkowników 
+- Zarządzanie kontem 
+  - Edycja:
+    - hasła
+    - koloru avatara
+    - adresu email
+    - nazwy użytkownika
+  - usuwanie konta
+- Odzyskiwanie konta za pomocą unikalnego klucza odzyskiwania (kod jest wysylany na adres email przy procesie odzyskiwania)
+- Wysyłanie powiadomien email
+- Tworzenie chat room'ów 
+- Dołączanie do chat room'ów za pomocą unkalnego kodu dostępowego (uzyskanego po uwtorzeniu chatu)
+- Komunikacja użytkowników na chacie w czasie rzeczywistym
+
 Wykorzystane framework'i:
 - NodeJS
 - ReactJS
