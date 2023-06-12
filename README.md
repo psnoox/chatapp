@@ -1,5 +1,26 @@
 # chat-app
 
+Główne funkcje aplikacji:
+- Tworzenie kont uzytkowników 
+- Zarządzanie kontem 
+  - Edycja:
+    - hasła
+    - koloru avatara
+    - adresu email
+    - nazwy użytkownika
+  - usuwanie konta
+- System logów użytkownika w tym:
+  - logowanie
+  - nieudana próba odzyskania konta
+  - nieudana próba usunięcia konta
+  - zmiana hasła
+  - wysłany klucz odzyskiwania 
+- Odzyskiwanie konta za pomocą unikalnego klucza odzyskiwania (kod jest wysylany na adres email przy procesie odzyskiwania)
+- Wysyłanie powiadomien email
+- Tworzenie chat room'ów 
+- Dołączanie do chat room'ów za pomocą unkalnego kodu dostępowego (uzyskanego po uwtorzeniu chatu)
+- Komunikacja użytkowników na chacie w czasie rzeczywistym
+
 Wykorzystane framework'i:
 - NodeJS
 - ReactJS
@@ -26,6 +47,8 @@ Bibliotego po stronie klienta:
 - socket.io-client (komunikacja klienta z serwerem w czasie rzeczywistym)
 
 
-
-
-Chat application based on ReactJS and NodeJS
+![Okno chat'u](https://i.imgur.com/UfdpOlZ.png)
+![System logów (skrót)](https://i.imgur.com/P8wCHRr.png)
+![Powiadomienie email](https://i.imgur.com/DfDhAOr.png)
+![Powiadomienie email](https://i.imgur.com/0JGXOuw.png)
+![Powiadomienie email](https://i.imgur.com/EPHp4SQ.png)
