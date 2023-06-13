@@ -25,8 +25,8 @@ app.post('/join-room', async(req, res) => {
     if (!user || !code) return res.status(400).send({ message: "Unauthorized" });
     const Room = await Chat.findOne({code: code}).catch(e => {console.log(e)});
     if (!Room) return res.status(400).send("Invalid access code")
-    const appendRoom = await Chat.findOneAndUpdate({code: code}, {$push: {users: user._id}}).catch(e => {console.log(e)});
-    const updateUser = await User.findByIdAndUpdate(user._id, {$push: {joinedChats: newChat._id}}).catch(e => {console.log(e)});
+    const appendRoom = await Chat.findOneAndUpdate({code: code}, {$push: {users: user.id}}).catch(e => {console.log(e)});
+    const updateUser = await User.findByIdAndUpdate(user.id, {$push: {joinedChats: Room._id}}).catch(e => {console.log(e)});
     if(!appendRoom) return res.status(400).send({ message: "An error was encountered while joining the room" });
     res.send(appendRoom)
 })

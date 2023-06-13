@@ -55,6 +55,7 @@ export default function MainPage() {
   const [alert, setAlertData] = useState([]);
   const [room, setRoom] = useState("");
   const [code, setCode] = useState("");
+  const [entryCode, setEntryCode] = useState("");
   const [openCode, setOpenCode] = useState(false);
   const [chats, setChats] = useState();
   const [openCreate, setOpenCreate] = useState(false);
@@ -129,16 +130,15 @@ export default function MainPage() {
   };
   const handleJoin = (e) => {
     e.preventDefault();
-    if (code.length < 1) return;
-    JoinRoom(user, code)
+    if (entryCode.length < 1) return;
+    JoinRoom(user, entryCode)
       .then((data) => {
         setAlertData({
           type: "success",
-          message: data.message,
+          message: "Joined to channel successfully",
         });
         setOpenAlert(true);
         handleToggleJoin();
-        setOpenCode(true);
       })
       .catch((e) => {
         setAlertData({
@@ -219,9 +219,8 @@ export default function MainPage() {
             <ListItem
               key={"Join room"}
               disablePadding
-              onClick={handleToggleJoin}
             >
-              <ListItemButton>
+              <ListItemButton onClick={handleToggleJoin}>
                 <ListItemIcon>
                   <AddCircleIcon />
                 </ListItemIcon>
@@ -377,9 +376,9 @@ export default function MainPage() {
                 fullWidth
                 type="text"
                 variant="standard"
-                value={room}
+                value={entryCode}
                 onChange={(e) => {
-                  setRoom(e.target.value);
+                  setEntryCode(e.target.value);
                 }}
               />
             </DialogContent>
