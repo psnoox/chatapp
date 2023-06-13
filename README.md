@@ -47,8 +47,9 @@ Bibliotego po stronie klienta:
 - socket.io-client (komunikacja klienta z serwerem w czasie rzeczywistym)
 
 
-![Okno chat'u](https://i.imgur.com/UfdpOlZ.png)
+![Okno chat'u](https://i.imgur.com/5AnnTuN.png)
 ![System logów (skrót)](https://i.imgur.com/P8wCHRr.png)
 ![Powiadomienie email](https://i.imgur.com/DfDhAOr.png)
 ![Powiadomienie email](https://i.imgur.com/0JGXOuw.png)
 ![Powiadomienie email](https://i.imgur.com/EPHp4SQ.png)
+![Kod](https://i.imgur.com/9BgL25q.png)
